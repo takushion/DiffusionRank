@@ -13,6 +13,7 @@ from transformers import (
     set_seed,
 )
 from peft import LoraConfig, get_peft_model
+from transformers import BitsAndBytesConfig
 
 from data import make_data_module
 from trainer import SFTTrainer
@@ -26,6 +27,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("config", nargs="?", default="configs/llada1.5_vanilla_lora.yaml")
     parser.add_argument("--output-dir", default=None)
+    parser.add_argument("--qlora", action="store_true", help="4-bit QLoRA for Colab")
     args, remaining = parser.parse_known_args()
     config_path = args.config
 
@@ -38,13 +40,29 @@ def main():
     model_config = AutoConfig.from_pretrained(config["model"]["name"], trust_remote_code=True)
     model_config.rope_theta *= config["model"]["rope_scaling_factor"]
     
-    model = AutoModel.from_pretrained(
-        config["model"]["name"],
+    load_kwargs = dict(
         config=model_config,
-        torch_dtype=torch.bfloat16,
         trust_remote_code=True,
     )
-    model.model.set_activation_checkpointing("fine_grained")
+    if args.qlora:
+        load_kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+        )
+        load_kwargs["device_map"] = "auto"
+    else:
+        load_kwargs["torch_dtype"] = torch.bfloat16
+
+    model = AutoModel.from_pretrained(
+        config["model"]["name"],
+        **load_kwargs,
+    )
+    if hasattr(model.model, "set_activation_checkpointing"):
+        model.model.set_activation_checkpointing("fine_grained")
+    elif hasattr(model, "gradient_checkpointing_enable"):
+        model.gradient_checkpointing_enable()
     
     if config.get("lora", None):
         lora_config = LoraConfig(**config["lora"])
@@ -80,6 +98,12 @@ def main():
 
     torch.cuda.synchronize()
     trainer.save_model()
+
+    # QLoRA: アダプターをマージして保存（eval用）
+    if args.qlora:
+        merged = model.merge_and_unload()
+        merged.save_pretrained(training_args.output_dir + "_merged")
+        tokenizer.save_pretrained(training_args.output_dir + "_merged")
 
 
 if __name__ == "__main__":
