@@ -23,13 +23,12 @@ class LladaForEval:
             model_path,
             config=config,
             torch_dtype=torch.bfloat16,
-            device_map="cuda",
             **hf_kwargs,
         )
         self.model.eval()
 
         self.device = torch.device(device)
-        self.model = self.model.to(device)
+        self.model = self.model.to(self.device)
 
         self.mask_id = mask_id
         self.eos_id = eos_id
