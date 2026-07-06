@@ -7,7 +7,7 @@ from transformers.utils import logging
 import numpy as np
 import pytrec_eval
 from tqdm import tqdm
-from datasets import load_dataset
+import ir_datasets
 
 from eval_utils import LladaForEval, PermutationListwiseWrapper
 
@@ -40,32 +40,26 @@ def rerank_sliding_window(
 
 
 def load_beir_dataset(dataset_name: str):
-    queries = load_dataset(f"BeIR/{dataset_name}", "queries", split="queries")
-    qrels_ds = load_dataset(f"BeIR/{dataset_name}", "qrels", split="qrels")
+    ds = ir_datasets.load(f"beir/{dataset_name}")
 
     queries_map = {}
-    for row in queries:
-        queries_map[str(row["_id"])] = row.get("text", "")
+    for q in ds.queries_iter():
+        queries_map[q.query_id] = q.text
 
     qrels_map = {}
-    for row in qrels_ds:
-        qid = str(row["query-id"])
-        did = str(row["corpus-id"])
-        score = int(row["score"])
-        qrels_map.setdefault(qid, {})[did] = score
+    for qrel in ds.qrels_iter():
+        qrels_map.setdefault(qrel.query_id, {})[qrel.doc_id] = qrel.relevance
 
     needed_dids = set()
     for qid, docs in qrels_map.items():
         needed_dids.update(docs.keys())
 
-    corpus_ds = load_dataset(f"BeIR/{dataset_name}", "corpus", split="corpus")
     corpus_map = {}
-    for row in corpus_ds:
-        did = str(row["_id"])
-        if did in needed_dids:
-            text = row.get("text", "")
-            title = row.get("title", "")
-            corpus_map[did] = f"{title} {text}".strip()
+    for doc in ds.docs_iter():
+        if doc.doc_id in needed_dids:
+            text = getattr(doc, "text", "") or ""
+            title = getattr(doc, "title", "") or ""
+            corpus_map[doc.doc_id] = f"{title} {text}".strip()
 
     return corpus_map, queries_map, qrels_map
 
