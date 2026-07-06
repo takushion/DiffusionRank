@@ -60,8 +60,11 @@ def main():
         config["model"]["name"],
         **load_kwargs,
     )
-    if hasattr(model.model, "set_activation_checkpointing"):
+    # LLaDA custom fine-grained activation checkpointing (per-op within block)
+    # LLaDAModelLM.model → LLaDAModel (inner), which has set_activation_checkpointing
+    if hasattr(model, "model") and hasattr(model.model, "set_activation_checkpointing"):
         model.model.set_activation_checkpointing("fine_grained")
+        print("LLaDA fine-grained activation checkpointing enabled")
     elif hasattr(model, "gradient_checkpointing_enable"):
         model.gradient_checkpointing_enable()
     
