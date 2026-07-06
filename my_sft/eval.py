@@ -132,8 +132,6 @@ if __name__ == "__main__":
     parser.add_argument("--step", type=int, default=5)
     parser.add_argument("--max-queries", type=int, default=10,
                         help="Max queries to evaluate (0 = all)")
-    parser.add_argument("--max-queries", type=int, default=0,
-                        help="Max queries to evaluate (0 = all)")
     parser.add_argument("--output-dir", type=str, default=None)
     parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()
