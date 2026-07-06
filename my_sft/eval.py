@@ -138,14 +138,15 @@ if __name__ == "__main__":
 
     assert args.step <= args.window_size, "step must be <= window_size"
 
+    model_kwargs = eval(f"dict({args.model_args})") if args.model_args else {}
     model = LladaForEval(
         model_path=args.model,
         rope_scaling_factor=args.rope_scaling_factor,
         device=args.device,
+        **model_kwargs,
     )
 
-    perm_kwargs = eval(f"dict({args.model_args})") if args.model_args else {}
-    permutation_fn = PermutationListwiseWrapper(model, **perm_kwargs)
+    permutation_fn = PermutationListwiseWrapper(model)
 
     results = {}
     for dataset_name in args.datasets:

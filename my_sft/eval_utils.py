@@ -16,13 +16,15 @@ class LladaForEval:
         device="cuda",
         **kwargs,
     ):
-        config = AutoConfig.from_pretrained("GSAI-ML/LLaDA-1.5", trust_remote_code=True)
+        hf_kwargs = {"trust_remote_code": True, **kwargs}
+        config = AutoConfig.from_pretrained("GSAI-ML/LLaDA-1.5", **hf_kwargs)
         config.rope_theta = config.rope_theta * rope_scaling_factor
         self.model = AutoModel.from_pretrained(
             model_path,
             config=config,
             torch_dtype=torch.bfloat16,
-            device_map="cuda"
+            device_map="cuda",
+            **hf_kwargs,
         )
         self.model.eval()
 
