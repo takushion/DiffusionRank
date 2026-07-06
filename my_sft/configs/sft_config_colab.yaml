@@ -20,7 +20,7 @@ training:
   bf16: true
   save_strategy: "steps"
   save_only_model: false
-  report_to: "none"
+  report_to: "wandb"
   mask_strategy: "ranking_aware"
   dataloader_num_workers: 2
 
