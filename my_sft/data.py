@@ -64,12 +64,11 @@ Documents:
             max_length=8192,
             add_generation_prompt=False,
             return_tensors="pt",
-            return_dict=True,
         ).input_ids[0]
         prompt_length = len(
             self.tokenizer.apply_chat_template(
-                messages[:-1], add_generation_prompt=True, return_dict=True
-            ).input_ids
+                messages[:-1], add_generation_prompt=True
+            )
         )
         ret = dict(
             input_ids=input_ids,

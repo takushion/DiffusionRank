@@ -2,7 +2,7 @@
 set -euo pipefail
 
 cd ~/DiffusionRank/my_sft
-source ~/.venv/bin/activate
+source .venv/bin/activate
 
 echo "=== 評価①: 学習前 ==="
 python eval.py --model GSAI-ML/LLaDA-1.5 --datasets covid --topk 100
