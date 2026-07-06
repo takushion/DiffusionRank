@@ -17,7 +17,8 @@ training:
   weight_decay: 0.01
   bf16: true
   tf32: true
-  save_strategy: "epoch"
+  save_strategy: "steps"
+  save_steps: 500
   report_to: "wandb"
   mask_strategy: "ranking_aware"
 
