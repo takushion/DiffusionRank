@@ -2,6 +2,7 @@
 set -euo pipefail
 
 cd ~/DiffusionRank/my_sft
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 source .venv/bin/activate
 
 echo "=== 評価①: 学習前 ==="
