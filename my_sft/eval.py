@@ -134,6 +134,8 @@ if __name__ == "__main__":
                         help="Max queries to evaluate (0 = all)")
     parser.add_argument("--output-dir", type=str, default=None)
     parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--adapter-path", type=str, default=None,
+                        help="Path to LoRA adapter checkpoint to merge before eval")
     args = parser.parse_args()
 
     assert args.step <= args.window_size, "step must be <= window_size"
@@ -145,6 +147,10 @@ if __name__ == "__main__":
         device=args.device,
         **model_kwargs,
     )
+
+    if args.adapter_path is not None:
+        print(f"Loading adapter from {args.adapter_path}")
+        model.load_adapter(args.adapter_path)
 
     permutation_fn = PermutationListwiseWrapper(model)
 

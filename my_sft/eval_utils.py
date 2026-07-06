@@ -4,6 +4,7 @@ import torch
 import torch.nn.functional as F
 from scipy.optimize import linear_sum_assignment
 from transformers import AutoTokenizer, AutoConfig, AutoModel
+from peft import PeftModel
 
 
 class LladaForEval:
@@ -33,6 +34,12 @@ class LladaForEval:
         self.mask_id = mask_id
         self.eos_id = eos_id
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+
+    def load_adapter(self, adapter_path: str):
+        self.model = PeftModel.from_pretrained(self.model, adapter_path)
+        self.model = self.model.merge_and_unload()
+        self.model.eval()
+        self.model = self.model.to(self.device)
         
     @torch.no_grad()
     def get_logits(self, batch, prompt_index=None, cfg=0.0):
