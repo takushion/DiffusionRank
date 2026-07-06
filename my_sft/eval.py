@@ -73,11 +73,15 @@ def evaluate_dataset(
     topk: int = 100,
     window_size: int = 20,
     step: int = 10,
+    max_queries: int = 10,
 ):
     run = {}
     skipped = 0
 
-    for qid in tqdm(queries_map, desc=f"Evaluating {dataset_name}"):
+    all_qids = [q for q in queries_map if q in qrels_map]
+    if max_queries > 0:
+        all_qids = all_qids[:max_queries]
+    for qid in tqdm(all_qids, desc=f"Evaluating {dataset_name}"):
         if qid not in qrels_map:
             skipped += 1
             continue
@@ -124,8 +128,12 @@ if __name__ == "__main__":
     parser.add_argument("--reranking-args", type=str, default="")
     parser.add_argument("--datasets", nargs="+", required=True)
     parser.add_argument("--topk", type=int, default=100)
-    parser.add_argument("--window-size", type=int, default=20)
-    parser.add_argument("--step", type=int, default=10)
+    parser.add_argument("--window-size", type=int, default=10)
+    parser.add_argument("--step", type=int, default=5)
+    parser.add_argument("--max-queries", type=int, default=10,
+                        help="Max queries to evaluate (0 = all)")
+    parser.add_argument("--max-queries", type=int, default=0,
+                        help="Max queries to evaluate (0 = all)")
     parser.add_argument("--output-dir", type=str, default=None)
     parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()
@@ -155,6 +163,7 @@ if __name__ == "__main__":
             topk=args.topk,
             window_size=args.window_size,
             step=args.step,
+            max_queries=args.max_queries,
         )
         results[dataset_name] = avg_metrics
         print(f"  Results: {json.dumps(avg_metrics, indent=4)}")
