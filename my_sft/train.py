@@ -100,11 +100,10 @@ def main():
     torch.cuda.synchronize()
     trainer.save_model()
 
-    # QLoRA: アダプターをマージして保存（eval用）
-    if args.qlora:
-        merged = model.merge_and_unload()
-        merged.save_pretrained(training_args.output_dir + "_merged")
-        tokenizer.save_pretrained(training_args.output_dir + "_merged")
+    # マージして保存（eval用）
+    merged = model.merge_and_unload()
+    merged.save_pretrained(training_args.output_dir + "_merged")
+    tokenizer.save_pretrained(training_args.output_dir + "_merged")
 
 
 if __name__ == "__main__":
