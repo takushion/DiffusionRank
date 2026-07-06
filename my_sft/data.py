@@ -64,7 +64,7 @@ Documents:
             max_length=8192,
             add_generation_prompt=False,
             return_tensors="pt",
-        ).input_ids[0]
+        )[0]
         prompt_length = len(
             self.tokenizer.apply_chat_template(
                 messages[:-1], add_generation_prompt=True
