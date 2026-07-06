@@ -3,6 +3,7 @@ import sys
 import pathlib
 import yaml
 import torch
+import argparse
 from dataclasses import dataclass, field
 from transformers import (
     TrainingArguments as HFTrainingArguments,
@@ -22,9 +23,12 @@ class TrainingArguments(HFTrainingArguments):
     mask_strategy: str = "default"
     
 def main():
-    config_path = (
-        sys.argv[1] if len(sys.argv) > 1 else "configs/llada1.5_vanilla_lora.yaml"
-    )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("config", nargs="?", default="configs/llada1.5_vanilla_lora.yaml")
+    parser.add_argument("--output-dir", default=None)
+    args, remaining = parser.parse_known_args()
+    config_path = args.config
+
     with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
@@ -52,6 +56,9 @@ def main():
     data_module = make_data_module(tokenizer=tokenizer, data_path=config["data"]["data_path"])
     
     training_args = config["training"]
+    if args.output_dir is not None:
+        training_args["output_dir"] = args.output_dir
+
     trainer_class_SFT = SFTTrainer
     training_args = TrainingArguments(
         **training_args,
