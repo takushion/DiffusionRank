@@ -52,6 +52,7 @@ def main():
             bnb_4bit_quant_type="nf4",
         )
         load_kwargs["device_map"] = "auto"
+        load_kwargs["low_cpu_mem_usage"] = True
     else:
         load_kwargs["torch_dtype"] = torch.bfloat16
 
